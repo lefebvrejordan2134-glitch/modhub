@@ -1,0 +1,11 @@
+{
+  "name": "modhub",
+  "version": "1.0.0",
+  "description": "Boutique de plugins de jeu avec Stripe",
+  "dependencies": {
+    "stripe": "^14.0.0"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}

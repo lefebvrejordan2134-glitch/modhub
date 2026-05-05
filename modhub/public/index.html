@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ModHub — Plugins & Mods</title>
+  <script src="https://js.stripe.com/v3/"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --n:#00f5ff;--n2:#ff00aa;--n3:#aaff00;--n4:#ffaa00;
+      --bg:#070b14;--bg2:#0d1526;--bg3:#0a1220;--bg4:#111d35;
+      --bd:rgba(0,245,255,0.18);--bd2:rgba(0,245,255,0.08);
+      --txt:#c8e0ff;--txt2:#7fa8cc;--txt3:#3a5a78;
+    }
+    body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+    a{text-decoration:none;color:inherit;}
+
+    /* TOPBAR */
+    .topbar{background:var(--bg2);border-bottom:1px solid var(--bd);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+    .logo{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;color:var(--n);letter-spacing:3px;cursor:pointer;}
+    .logo span{color:var(--n2);}
+    .nav-tabs{display:flex;gap:4px;}
+    .ntab{background:transparent;border:1px solid transparent;color:var(--txt2);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;padding:6px 14px;border-radius:3px;cursor:pointer;letter-spacing:1px;transition:all .15s;}
+    .ntab:hover{color:var(--n);border-color:var(--bd);}
+    .ntab.on{color:var(--n);border-color:var(--n);background:rgba(0,245,255,0.06);}
+    .cart-btn{background:transparent;border:1px solid var(--n);color:var(--n);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;padding:6px 16px;border-radius:3px;cursor:pointer;letter-spacing:1px;display:flex;align-items:center;gap:8px;}
+    .cc{background:var(--n);color:var(--bg);width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+
+    /* PAGES */
+    .page{display:none;}
+    .page.on{display:block;}
+
+    /* HERO */
+    .hero{background:var(--bg2);padding:48px 32px 36px;border-bottom:1px solid var(--bd2);}
+    .hero-tag{font-size:11px;letter-spacing:3px;color:var(--n);text-transform:uppercase;margin-bottom:10px;font-weight:600;}
+    .hero-title{font-family:'Orbitron',monospace;font-size:32px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:8px;}
+    .hero-title span{color:var(--n);}
+    .hero-sub{font-size:15px;color:var(--txt2);font-weight:300;max-width:500px;}
+
+    /* FILTERS */
+    .filters{padding:14px 32px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--bd2);background:var(--bg2);}
+    .fb{background:transparent;border:1px solid rgba(0,245,255,0.15);color:var(--txt2);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;padding:5px 14px;border-radius:3px;cursor:pointer;letter-spacing:1px;transition:all .2s;}
+    .fb.on,.fb:hover{border-color:var(--n);color:var(--n);background:rgba(0,245,255,0.06);}
+
+    /* GRID */
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1px;background:var(--bd2);padding:1px;}
+    .pc{background:var(--bg3);padding:22px 20px;cursor:pointer;transition:background .2s;display:flex;flex-direction:column;}
+    .pc:hover{background:#0f1d30;}
+    .badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:2px;margin-bottom:14px;width:fit-content;}
+    .b-new{background:rgba(0,245,255,.1);color:var(--n);border:1px solid rgba(0,245,255,.25);}
+    .b-hot{background:rgba(255,0,170,.1);color:var(--n2);border:1px solid rgba(255,0,170,.25);}
+    .b-free{background:rgba(170,255,0,.1);color:var(--n3);border:1px solid rgba(170,255,0,.25);}
+    .b-pro{background:rgba(255,170,0,.1);color:var(--n4);border:1px solid rgba(255,170,0,.25);}
+    .pico{width:44px;height:44px;border-radius:8px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;font-size:22px;}
+    .ic-c{background:rgba(0,245,255,.1);}
+    .ic-p{background:rgba(255,0,170,.1);}
+    .ic-g{background:rgba(170,255,0,.1);}
+    .ic-a{background:rgba(255,170,0,.1);}
+    .ic-v{background:rgba(140,0,255,.1);}
+    .pname{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:#fff;margin-bottom:6px;letter-spacing:1px;}
+    .pdesc{font-size:13px;color:var(--txt3);line-height:1.5;margin-bottom:14px;font-weight:300;flex:1;}
+    .ptags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+    .ptag{font-size:10px;letter-spacing:1px;color:var(--txt3);border:1px solid rgba(255,255,255,.06);padding:2px 8px;border-radius:2px;}
+    .pstars{font-size:12px;color:var(--n4);margin-bottom:4px;}
+    .prc{font-size:11px;color:var(--txt3);}
+    .divl{height:1px;background:rgba(0,245,255,.05);margin:10px 0;}
+    .pfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+    .price{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;color:var(--n);}
+    .price-free{color:var(--n3);}
+    .price-old{font-size:11px;color:var(--txt3);text-decoration:line-through;margin-right:5px;}
+    .ab{background:transparent;border:1px solid var(--n);color:var(--n);font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;padding:6px 14px;border-radius:3px;cursor:pointer;letter-spacing:1px;transition:all .15s;white-space:nowrap;}
+    .ab:hover{background:var(--n);color:var(--bg);}
+    .ab.done{border-color:var(--n3);color:var(--n3);}
+    .db{background:transparent;border:1px solid rgba(0,245,255,.2);color:var(--txt2);font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;padding:5px 10px;border-radius:3px;cursor:pointer;letter-spacing:1px;white-space:nowrap;}
+    .db:hover{border-color:var(--n);color:var(--n);}
+
+    /* DETAIL PAGE */
+    .dp-back{background:var(--bg2);border-bottom:1px solid var(--bd2);padding:14px 32px;}
+    .back-btn{background:transparent;border:1px solid var(--bd);color:var(--txt2);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;padding:6px 16px;border-radius:3px;cursor:pointer;letter-spacing:1px;}
+    .back-btn:hover{border-color:var(--n);color:var(--n);}
+    .dp-hero{background:var(--bg2);padding:32px;border-bottom:1px solid var(--bd2);display:grid;grid-template-columns:1fr 300px;gap:32px;}
+    @media(max-width:700px){.dp-hero{grid-template-columns:1fr;}.topbar{padding:12px 16px;}.hero{padding:28px 16px;}.filters,.grid,.dp-back{padding-left:16px;padding-right:16px;}}
+    .dp-name{font-family:'Orbitron',monospace;font-size:24px;font-weight:900;color:#fff;margin-bottom:10px;letter-spacing:1px;}
+    .dp-tagline{font-size:14px;color:var(--txt2);margin-bottom:16px;font-weight:300;line-height:1.7;}
+    .dp-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+    .dp-m{font-size:12px;color:var(--txt3);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);padding:3px 10px;border-radius:2px;}
+    .dp-feat-title{font-size:11px;letter-spacing:2px;color:var(--n);text-transform:uppercase;margin-bottom:10px;font-weight:600;}
+    .dp-feat-list{list-style:none;}
+    .dp-feat-list li{font-size:13px;color:var(--txt2);padding:5px 0;padding-left:16px;position:relative;font-weight:300;border-bottom:1px solid rgba(255,255,255,.03);}
+    .dp-feat-list li::before{content:'▸';color:var(--n);position:absolute;left:0;font-size:11px;}
+    .dp-buy{background:var(--bg3);border:1px solid var(--bd);border-radius:6px;padding:24px;display:flex;flex-direction:column;gap:16px;height:fit-content;}
+    .dp-price{font-family:'Orbitron',monospace;font-size:32px;font-weight:900;color:var(--n);text-align:center;}
+    .dp-price-old{font-size:13px;color:var(--txt3);text-decoration:line-through;text-align:center;margin-bottom:4px;}
+    .dp-price-note{font-size:11px;color:var(--txt3);text-align:center;letter-spacing:1px;}
+    .buy-btn{background:var(--n);color:var(--bg);font-family:'Orbitron',monospace;font-size:12px;font-weight:700;padding:14px;border:none;border-radius:3px;cursor:pointer;letter-spacing:2px;width:100%;transition:background .2s;}
+    .buy-btn:hover{background:#00d4e0;}
+    .buy-btn:disabled{background:var(--txt3);cursor:not-allowed;}
+    .cart-btn2{background:transparent;border:1px solid var(--n);color:var(--n);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;padding:10px;border-radius:3px;cursor:pointer;letter-spacing:1px;width:100%;transition:all .2s;}
+    .cart-btn2:hover{background:rgba(0,245,255,.08);}
+    .stripe-badge{display:flex;align-items:center;justify-content:center;gap:8px;font-size:11px;color:var(--txt3);padding-top:10px;border-top:1px solid var(--bd2);}
+    .stripe-dot{width:8px;height:8px;border-radius:50%;background:#6772e5;display:inline-block;}
+    .dp-tabs{display:flex;border-bottom:1px solid var(--bd2);background:var(--bg2);padding:0 32px;}
+    .dp-tab{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--txt2);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;padding:14px 18px;cursor:pointer;letter-spacing:1px;transition:all .15s;}
+    .dp-tab.on{color:var(--n);border-bottom-color:var(--n);}
+    .dp-content{padding:32px;background:var(--bg);}
+    .dp-section{display:none;}
+    .dp-section.on{display:block;}
+    .screenshots{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+    .ss{background:var(--bg3);border:1px solid var(--bd2);border-radius:4px;height:100px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--txt3);letter-spacing:1px;}
+    .changelog{display:flex;flex-direction:column;gap:16px;}
+    .cl-item{border-left:2px solid var(--n);padding-left:16px;}
+    .cl-v{font-family:'Orbitron',monospace;font-size:12px;color:var(--n);font-weight:700;}
+    .cl-d{font-size:11px;color:var(--txt3);margin-bottom:6px;}
+    .cl-notes{font-size:13px;color:var(--txt2);font-weight:300;line-height:1.6;}
+
+    /* PANIER */
+    .cart-page{padding:32px;max-width:700px;margin:0 auto;}
+    .cart-title-h{font-family:'Orbitron',monospace;font-size:18px;color:var(--n);letter-spacing:2px;margin-bottom:24px;}
+    .cart-empty{text-align:center;padding:80px 20px;color:var(--txt3);}
+    .cart-list{display:flex;flex-direction:column;gap:10px;margin-bottom:24px;}
+    .cart-row{background:var(--bg3);border:1px solid var(--bd2);border-radius:4px;padding:16px 18px;display:flex;align-items:center;gap:16px;}
+    .cr-ico{font-size:22px;width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+    .cr-info{flex:1;}
+    .cr-name{font-family:'Orbitron',monospace;font-size:12px;color:#fff;font-weight:700;margin-bottom:3px;}
+    .cr-type{font-size:11px;color:var(--txt3);}
+    .cr-price{font-family:'Orbitron',monospace;font-size:15px;color:var(--n);font-weight:700;}
+    .cr-rm{background:none;border:none;color:#ff4466;cursor:pointer;font-size:18px;padding:0 6px;}
+    .cart-summary{background:var(--bg3);border:1px solid var(--bd);border-radius:6px;padding:24px;}
+    .sum-row{display:flex;justify-content:space-between;font-size:14px;color:var(--txt2);padding:6px 0;}
+    .sum-total{display:flex;justify-content:space-between;font-family:'Orbitron',monospace;font-size:20px;color:#fff;padding:14px 0 18px;border-top:1px solid var(--bd2);margin-top:10px;}
+    .sum-total span{color:var(--n);}
+    .checkout-btn{background:var(--n);color:var(--bg);font-family:'Orbitron',monospace;font-size:13px;font-weight:700;padding:14px;border:none;border-radius:3px;cursor:pointer;letter-spacing:2px;width:100%;margin-bottom:10px;transition:background .2s;}
+    .checkout-btn:hover{background:#00d4e0;}
+    .checkout-btn:disabled{background:var(--txt3);cursor:not-allowed;}
+    .stripe-info{display:flex;align-items:center;justify-content:center;gap:8px;font-size:11px;color:var(--txt3);margin-top:8px;}
+
+    /* LICENCES */
+    .lic-page{padding:32px;max-width:700px;margin:0 auto;}
+    .lic-h{font-family:'Orbitron',monospace;font-size:18px;color:var(--n);letter-spacing:2px;margin-bottom:6px;}
+    .lic-sub{font-size:14px;color:var(--txt2);margin-bottom:24px;font-weight:300;}
+    .lic-activate{background:var(--bg3);border:1px solid var(--bd);border-radius:6px;padding:24px;margin-bottom:28px;}
+    .lic-form{display:flex;gap:10px;margin-top:14px;}
+    .lic-input{background:var(--bg2);border:1px solid var(--bd);color:#fff;font-family:'Orbitron',monospace;font-size:14px;padding:11px 16px;border-radius:3px;flex:1;letter-spacing:2px;outline:none;}
+    .lic-input:focus{border-color:var(--n);}
+    .lic-input::placeholder{color:var(--txt3);font-size:11px;letter-spacing:1px;}
+    .lic-btn{background:var(--n);color:var(--bg);font-family:'Orbitron',monospace;font-size:11px;font-weight:700;padding:11px 20px;border:none;border-radius:3px;cursor:pointer;letter-spacing:2px;white-space:nowrap;}
+    .lic-btn:hover{background:#00d4e0;}
+    .lic-result{margin-top:14px;padding:12px 16px;border-radius:4px;font-size:13px;display:none;font-weight:400;}
+    .lic-ok{background:rgba(170,255,0,.08);border:1px solid rgba(170,255,0,.25);color:var(--n3);}
+    .lic-err{background:rgba(255,0,80,.08);border:1px solid rgba(255,0,80,.25);color:#ff4466;}
+    .my-licenses{display:flex;flex-direction:column;gap:12px;}
+    .lic-card{background:var(--bg3);border:1px solid var(--bd2);border-radius:4px;padding:18px 20px;}
+    .lic-card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+    .lic-pname{font-family:'Orbitron',monospace;font-size:13px;color:#fff;font-weight:700;}
+    .lic-status{font-size:10px;font-weight:700;letter-spacing:2px;padding:3px 10px;border-radius:2px;}
+    .ls-active{background:rgba(170,255,0,.1);color:var(--n3);border:1px solid rgba(170,255,0,.25);}
+    .ls-exp{background:rgba(255,0,80,.1);color:#ff4466;border:1px solid rgba(255,0,80,.25);}
+    .lic-key{font-family:'Orbitron',monospace;font-size:12px;color:var(--txt3);background:var(--bg2);border:1px solid rgba(255,255,255,.06);padding:8px 14px;border-radius:3px;letter-spacing:2px;margin-bottom:10px;cursor:pointer;}
+    .lic-key:hover{border-color:var(--n);color:var(--n);}
+    .lic-meta{display:flex;gap:20px;font-size:11px;color:var(--txt3);}
+
+    /* FOOTER */
+    .footer{background:var(--bg2);border-top:1px solid var(--bd2);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;margin-top:auto;}
+    .ft{font-size:11px;color:var(--txt3);letter-spacing:1px;}
+    .sd{width:7px;height:7px;border-radius:50%;background:var(--n3);display:inline-block;margin-right:8px;}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--n);color:var(--n);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;padding:12px 20px;border-radius:4px;letter-spacing:1px;z-index:9999;display:none;animation:slideUp .3s ease;}
+    @keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+    /* SPINNER */
+    .spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--bg);border-top:2px solid var(--bg2);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+  </style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo" onclick="nav('catalogue')">MOD<span>HUB</span></div>
+  <div class="nav-tabs">
+    <button class="ntab on" id="tab-boutique" onclick="nav('catalogue')">BOUTIQUE</button>
+    <button class="ntab" id="tab-licences" onclick="nav('licences')">MES LICENCES</button>
+  </div>
+  <button class="cart-btn" onclick="nav('panier')">
+    🛒 PANIER <span class="cc" id="cc">0</span>
+  </button>
+</div>
+
+<!-- PAGE CATALOGUE -->
+<div id="p-catalogue" class="page on">
+  <div class="hero">
+    <div class="hero-tag">● Boutique officielle — Paiement sécurisé Stripe</div>
+    <div class="hero-title">Mes <span>Plugins</span> & Mods</div>
+    <div class="hero-sub">Performance, visuels et gameplay — clé de licence livrée instantanément par email après achat.</div>
+  </div>
+  <div class="filters">
+    <button class="fb on" onclick="flt('all',this)">Tous</button>
+    <button class="fb" onclick="flt('performance',this)">Performance</button>
+    <button class="fb" onclick="flt('visuel',this)">Visuels</button>
+    <button class="fb" onclick="flt('gameplay',this)">Gameplay</button>
+    <button class="fb" onclick="flt('gratuit',this)">Gratuits</button>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- PAGE DETAIL -->
+<div id="p-detail" class="page">
+  <div class="dp-back"><button class="back-btn" onclick="nav('catalogue')">← Retour boutique</button></div>
+  <div class="dp-hero">
+    <div>
+      <div id="dp-badge" class="badge b-new" style="margin-bottom:14px;"></div>
+      <div class="dp-name" id="dp-name"></div>
+      <div class="dp-tagline" id="dp-tagline"></div>
+      <div style="font-size:13px;color:var(--n4);margin-bottom:8px;" id="dp-stars"></div>
+      <div class="dp-meta" id="dp-meta"></div>
+      <div class="dp-feat-title" style="margin-top:20px;">Fonctionnalités</div>
+      <ul class="dp-feat-list" id="dp-feats"></ul>
+    </div>
+    <div class="dp-buy">
+      <div>
+        <div class="dp-price-old" id="dp-pold"></div>
+        <div class="dp-price" id="dp-price"></div>
+        <div class="dp-price-note" style="margin-top:6px;">Licence perpétuelle · 1 compte</div>
+      </div>
+      <button class="buy-btn" id="dp-buy-now" onclick="buyNow()">ACHETER MAINTENANT</button>
+      <button class="cart-btn2" onclick="addCurrentToCart()">+ AJOUTER AU PANIER</button>
+      <div class="stripe-badge"><span class="stripe-dot"></span> Paiement sécurisé via Stripe</div>
+    </div>
+  </div>
+  <div class="dp-tabs">
+    <button class="dp-tab on" onclick="dptab('desc',this)">DESCRIPTION</button>
+    <button class="dp-tab" onclick="dptab('screens',this)">SCREENSHOTS</button>
+    <button class="dp-tab" onclick="dptab('changelog',this)">CHANGELOG</button>
+  </div>
+  <div class="dp-content">
+    <div class="dp-section on" id="ds-desc">
+      <p id="dp-longdesc" style="font-size:14px;color:var(--txt2);line-height:1.9;font-weight:300;max-width:680px;"></p>
+    </div>
+    <div class="dp-section" id="ds-screens">
+      <div class="screenshots" id="dp-screens"></div>
+      <p style="font-size:12px;color:var(--txt3);margin-top:8px;">Remplace les zones par tes vraies captures d'écran dans plugins.js</p>
+    </div>
+    <div class="dp-section" id="ds-changelog">
+      <div class="changelog" id="dp-changelog"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE PANIER -->
+<div id="p-panier" class="page">
+  <div class="cart-page">
+    <div class="cart-title-h">PANIER</div>
+    <div id="cart-empty" class="cart-empty" style="display:none;">
+      <div style="font-size:48px;margin-bottom:16px;opacity:.3;">🛒</div>
+      <div style="font-size:15px;color:var(--txt3);">Ton panier est vide</div>
+      <button onclick="nav('catalogue')" style="margin-top:20px;background:transparent;border:1px solid var(--n);color:var(--n);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;padding:10px 24px;border-radius:3px;cursor:pointer;letter-spacing:1px;">VOIR LES PLUGINS</button>
+    </div>
+    <div id="cart-list" class="cart-list"></div>
+    <div id="cart-sum" class="cart-summary" style="display:none;">
+      <div class="sum-row"><span>Sous-total</span><span id="sum-sub">0.00 €</span></div>
+      <div class="sum-row"><span>TVA (20%)</span><span id="sum-tva">0.00 €</span></div>
+      <div class="sum-total"><span>TOTAL</span><span id="sum-total">0.00 €</span></div>
+      <button class="checkout-btn" id="checkout-btn" onclick="checkoutCart()">PAYER VIA STRIPE</button>
+      <div class="stripe-info"><span class="stripe-dot"></span> Paiement 100% sécurisé — Stripe Checkout</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE LICENCES -->
+<div id="p-licences" class="page">
+  <div class="lic-page">
+    <div class="lic-h">MES LICENCES</div>
+    <div class="lic-sub">Active tes plugins en entrant ta clé de licence reçue par email après achat.</div>
+    <div class="lic-activate">
+      <div style="font-size:12px;letter-spacing:2px;color:var(--n);text-transform:uppercase;font-weight:600;margin-bottom:6px;">Activer une licence</div>
+      <div style="font-size:13px;color:var(--txt2);font-weight:300;">Entre la clé reçue par email après ton achat.</div>
+      <div class="lic-form">
+        <input class="lic-input" id="lic-key-input" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19" oninput="formatKey(this)">
+        <button class="lic-btn" onclick="activateLicense()">ACTIVER</button>
+      </div>
+      <div class="lic-result" id="lic-result"></div>
+    </div>
+    <div style="font-size:11px;letter-spacing:2px;color:var(--n);text-transform:uppercase;font-weight:600;margin-bottom:14px;">Licences enregistrées</div>
+    <div class="my-licenses" id="my-licenses">
+      <div style="font-size:13px;color:var(--txt3);text-align:center;padding:40px;">Aucune licence activée pour le moment.<br>Achète un plugin et active ta clé ici.</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <span class="ft"><span class="sd"></span>Serveur en ligne</span>
+  <span class="ft">ModHub — SSL &amp; Stripe sécurisé</span>
+</div>
+
+<script src="plugins.js"></script>
+<script src="store.js"></script>
+</body>
+</html>
